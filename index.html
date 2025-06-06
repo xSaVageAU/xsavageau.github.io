@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMW Map Rotation String Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0; /* Remove default margin */
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px; /* Add padding to body for spacing on small screens */
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 900px;
+            margin: 20px auto;
+        }
+
+        h1 {
+            color: #1a2533;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #1a2533;
+            font-weight: 700;
+            margin-top: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        select, textarea {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            font-size: 1em;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            box-sizing: border-box; /* Ensure padding and border are included in width */
+        }
+
+        select {
+             width: 100%; /* Make select full width of its column */
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        }
+
+        select:focus, textarea:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        button {
+            padding: 10px 18px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            color: white; /* Default button text color */
+        }
+        button:hover {
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0px);
+        }
+
+        #addEntryBtn {
+            background-color: #007bff; /* Primary Blue */
+        }
+        #addEntryBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #generateStringBtn {
+            background-color: #28a745; /* Success Green */
+        }
+        #generateStringBtn:hover {
+            background-color: #1e7e34;
+        }
+
+        #shuffleBtn {
+            background-color: #6c757d; /* Grey */
+        }
+        #shuffleBtn:hover {
+            background-color: #545b62;
+        }
+
+        #clearAllBtn {
+            background-color: #dc3545; /* Danger Red */
+        }
+        #clearAllBtn:hover {
+            background-color: #c82333;
+        }
+
+        .preset-buttons button {
+            background-color: #17a2b8; /* Info Teal */
+        }
+        .preset-buttons button:hover {
+            background-color: #117a8b;
+        }
+
+        .remove-btn {
+            background-color: #ffc107; /* Warning Amber */
+            color: #212529; /* Dark text for contrast on yellow */
+            margin-left: 10px;
+            font-size: 0.8em;
+            padding: 6px 10px;
+        }
+        .remove-btn:hover {
+            background-color: #e0a800;
+        }
+
+        #rotationEntries {
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        #rotationEntries div {
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #dee2e6;
+            transition: background-color 0.2s;
+        }
+        #rotationEntries div:hover {
+            background-color: #dfe3e6;
+        }
+        #rotationEntries div span {
+            font-size: 0.9em;
+            word-break: break-word; /* Prevent long map names from breaking layout */
+        }
+        #rotationEntries .empty-state {
+            padding: 20px;
+            text-align: center;
+            color: #7f8c8d;
+            border: 2px dashed #ced4da;
+            border-radius: 4px;
+            margin-top: 10px;
+            background-color: transparent; /* Override default div bg */
+            border-color: #ced4da; /* Override default div border */
+        }
+         #rotationEntries .empty-state:hover {
+            background-color: transparent; /* No hover for empty state */
+        }
+
+
+        .controls, .actions, .preset-buttons {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .preset-buttons { /* Keep preset buttons aligned to start if they wrap */
+            align-items: flex-start;
+        }
+
+
+        .column {
+            flex: 1;
+            min-width: 200px; /* Allow columns to shrink more before wrapping */
+        }
+
+        .generated-string-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .generated-string-wrapper textarea {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+        #copyStringBtn {
+            background-color: #545b62; /* Darker Grey for copy */
+            color: white;
+            flex-shrink: 0;
+        }
+        #copyStringBtn:hover {
+            background-color: #32383e;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            h2 {
+                font-size: 1.4em;
+            }
+            .controls, .actions, .preset-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .controls .column, .controls button, .actions button, .preset-buttons button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            #addEntryBtn { /* Ensure add entry btn is last in its group on mobile */
+                order: 3;
+            }
+            .column {
+                min-width: 100%;
+            }
+             .generated-string-wrapper {
+                flex-direction: column;
+            }
+            .generated-string-wrapper textarea, #copyStringBtn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HMW Map Rotation String Generator</h1>
+
+        <div class="controls">
+            <div class="column">
+                <label for="gametypeSelect">Gametype:</label>
+                <select id="gametypeSelect"></select>
+            </div>
+            <div class="column">
+                <label for="mapSelect">Map:</label>
+                <select id="mapSelect"></select>
+            </div>
+            <button id="addEntryBtn">Add Entry</button>
+        </div>
+
+        <div class="actions">
+            <button id="generateStringBtn">Generate Rotation String</button>
+            <button id="shuffleBtn">Shuffle Entries</button>
+            <button id="clearAllBtn">Clear All</button>
+        </div>
+        
+        <h2>Presets:</h2>
+        <div class="preset-buttons actions">
+            <button data-preset="moshpit-all">Moshpit - All</button>
+            <button data-preset="moshpit-mwr">Moshpit - MWR</button>
+            <button data-preset="moshpit-mw2">Moshpit - MW2</button>
+            <button data-preset="moshpit-mw3">Moshpit - MW3</button>
+            <button data-preset="tdm-popular">TDM - Popular</button>
+        </div>
+
+        <h2>Generated String:</h2>
+        <div class="generated-string-wrapper">
+            <textarea id="outputString" readonly placeholder="set sv_maprotation "...""></textarea>
+            <button id="copyStringBtn" title="Copy to Clipboard">Copy</button>
+        </div>
+
+        <h2>Current Rotation Entries:</h2>
+        <div id="rotationEntries">
+            <p class="empty-state">No entries added yet. Select a gametype and map, then click "Add Entry".</p>
+        </div>
+    </div>
+
+    <script>
+        const gametypes = [
+            { value: "dm", text: "Free-for-all" },
+            { value: "war", text: "Team Deathmatch" },
+            { value: "sd", text: "Search and Destroy" },
+            { value: "dom", text: "Domination" },
+            { value: "conf", text: "Kill Confirmed" },
+            { value: "sab", text: "Sabotage" },
+            { value: "koth", text: "Headquarters" },
+            { value: "hp", text: "Hardpoint" },
+            { value: "gun", text: "Gun Game" }
+        ];
+
+        const maps = [
+            { group: "MWR Maps", options: [
+                { value: "mp_convoy", text: "Ambush" }, { value: "mp_backlot", text: "Backlot" },
+                { value: "mp_bog", text: "Bog" }, { value: "mp_crash", text: "Crash" },
+                { value: "mp_crossfire", text: "Crossfire" }, { value: "mp_citystreets", text: "District" },
+                { value: "mp_farm", text: "Downpour" }, { value: "mp_overgrown", text: "Overgrown" },
+                { value: "mp_shipment", text: "Shipment" }, { value: "mp_vacant", text: "Vacant" },
+                { value: "mp_broadcast", text: "Broadcast" }, { value: "mp_carentan", text: "Chinatown" }, // Corrected mp_boardcast
+                { value: "mp_countdown", text: "Countdown" }, { value: "mp_bloc", text: "Bloc" },
+                { value: "mp_creek", text: "Creek" }, { value: "mp_killhouse", text: "Killhouse" },
+                { value: "mp_pipeline", text: "Pipeline" }, { value: "mp_strike", text: "Strike" },
+                { value: "mp_showdown", text: "Showdown" }, { value: "mp_cargoship", text: "Wet Work" },
+                { value: "mp_crash_snow", text: "Winter Crash" }, { value: "mp_farm_spring", text: "Day Break" },
+                { value: "mp_bog_summer", text: "Beach Bog" }
+            ]},
+            { group: "MW2 Maps", options: [
+                { value: "mp_afghan", text: "Afghan" }, { value: "mp_derail", text: "Derail" },
+                { value: "mp_estate", text: "Estate" }, { value: "mp_favela", text: "Favela" },
+                { value: "mp_highrise", text: "Highrise" }, { value: "mp_invasion", text: "Invasion" },
+                { value: "mp_checkpoint", text: "Karachi" }, { value: "mp_quarry", text: "Quarry" },
+                { value: "mp_rundown", text: "Rundown" }, { value: "mp_rust", text: "Rust" },
+                { value: "mp_boneyard", text: "Scrapyard" }, { value: "mp_nightshift", text: "Skidrow" },
+                { value: "mp_subbase", text: "Sub Base" }, { value: "mp_terminal", text: "Terminal" },
+                { value: "mp_underpass", text: "Underpass" }, { value: "mp_brecourt", text: "Wasteland" },
+                { value: "mp_complex", text: "Bailout" }, { value: "mp_compact", text: "Salvage" },
+                { value: "mp_storm", text: "Storm" }, { value: "mp_abandon", text: "Carnival" },
+                { value: "mp_fuel2", text: "Fuel" }, { value: "mp_trailerpark", text: "Trailer Park" }
+            ]},
+            { group: "MW3 Maps", options: [
+                { value: "mp_bootleg", text: "Bootleg" }, { value: "mp_dome", text: "Dome" }, // Corrected map_bootleg
+                { value: "mp_courtyard_ss", text: "Erosion" }, { value: "mp_lambeth", text: "Fallen" },
+                { value: "mp_hardhat", text: "Hardhat" }, { value: "mp_alpha", text: "Lockdown" },
+                { value: "mp_bravo", text: "Mission" }, { value: "mp_paris", text: "Resistance" },
+                { value: "mp_underground", text: "Underground" } // Corrected map_underground
+            ]},
+            { group: "MW2CR Maps (Limited Support)", options: [
+                { value: "airport", text: "Airport" }, { value: "cliffhanger", text: "Blizzard" },
+                { value: "contingency", text: "Contingency" }, { value: "dcburning", text: "DC Burning" },
+                { value: "boneyard", text: "Dumpsite" }, { value: "gulag", text: "Gulag" },
+                { value: "oilrig", text: "Oilrig" }, { value: "estate_mw2cr", text: "Safehouse" }, // Differentiated estate for clarity
+                { value: "dc_whitehouse", text: "Whiskey Hotel" }
+            ]}
+        ];
+
+        const presets = {
+            'moshpit-all': { entries: generateMoshpitRotation('all') },
+            'moshpit-mwr': { entries: generateMoshpitRotation('mwr') },
+            'moshpit-mw2': { entries: generateMoshpitRotation('mw2') },
+            'moshpit-mw3': { entries: generateMoshpitRotation('mw3') },
+            'tdm-popular': {
+                entries: [
+                    { gametype: 'war', map: 'mp_crash' }, { gametype: 'war', map: 'mp_backlot' },
+                    { gametype: 'war', map: 'mp_crossfire' }, { gametype: 'war', map: 'mp_vacant' },
+                    { gametype: 'war', map: 'mp_overgrown' }, { gametype: 'war', map: 'mp_terminal' },
+                    { gametype: 'war', map: 'mp_highrise' }, { gametype: 'war', map: 'mp_rust' },
+                    { gametype: 'war', map: 'mp_favela' }, { gametype: 'war', map: 'mp_afghan' },
+                    { gametype: 'war', map: 'mp_dome' }, { gametype: 'war', map: 'mp_hardhat' }
+                ]
+            }
+        };
+
+        function generateMoshpitRotation(mapSet) {
+            const entries = [];
+            const gametypeList = ['war', 'dom', 'conf', 'koth', 'hp']; // Common moshpit types
+            let mapList = [];
+            if (mapSet === 'all') {
+                maps.forEach(group => {
+                    if (!group.group.startsWith("MW2CR")) {
+                        mapList.push(...group.options.map(m => m.value));
+                    }
+                });
+            } else if (mapSet === 'mwr') {
+                mapList = maps.find(g => g.group.startsWith("MWR")).options.map(m => m.value);
+            } else if (mapSet === 'mw2') {
+                mapList = maps.find(g => g.group.startsWith("MW2 Maps")).options.map(m => m.value);
+            } else if (mapSet === 'mw3') {
+                mapList = maps.find(g => g.group.startsWith("MW3")).options.map(m => m.value);
+            }
+            gametypeList.forEach(gametype => {
+                mapList.forEach(map => {
+                    entries.push({ gametype, map });
+                });
+            });
+            return entries;
+        }
+
+
+        let currentRotation = [];
+
+        const gametypeSelect = document.getElementById('gametypeSelect');
+        const mapSelect = document.getElementById('mapSelect');
+        const addEntryBtn = document.getElementById('addEntryBtn');
+        const rotationEntriesDiv = document.getElementById('rotationEntries');
+        const generateStringBtn = document.getElementById('generateStringBtn');
+        const outputStringTextarea = document.getElementById('outputString');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const presetButtonContainer = document.querySelector('.preset-buttons');
+        const copyStringBtn = document.getElementById('copyStringBtn');
+
+
+        function populateSelects() {
+            gametypes.forEach(gt => {
+                const option = document.createElement('option');
+                option.value = gt.value;
+                option.textContent = gt.text;
+                gametypeSelect.appendChild(option);
+            });
+
+            maps.forEach(group => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group.group;
+                group.options.forEach(m => {
+                    const option = document.createElement('option');
+                    option.value = m.value;
+                    option.textContent = m.text;
+                    optgroup.appendChild(option);
+                });
+                mapSelect.appendChild(optgroup);
+            });
+        }
+
+        function renderRotationUI() {
+            rotationEntriesDiv.innerHTML = ''; // Clear previous entries
+            if (currentRotation.length === 0) {
+                const emptyStateP = document.createElement('p');
+                emptyStateP.className = 'empty-state';
+                emptyStateP.textContent = 'No entries added yet. Select a gametype and map, then click "Add Entry".';
+                rotationEntriesDiv.appendChild(emptyStateP);
+                return;
+            }
+            currentRotation.forEach((entry, index) => {
+                const entryDiv = document.createElement('div');
+                const gtText = gametypes.find(g => g.value === entry.gametype)?.text || entry.gametype;
+                let mapText = entry.map; // Fallback to value if not found
+                for(const group of maps) {
+                    const foundMap = group.options.find(m => m.value === entry.map);
+                    if (foundMap) {
+                        mapText = foundMap.text;
+                        break;
+                    }
+                }
+
+                const textSpan = document.createElement('span');
+                textSpan.textContent = `${gtText} - ${mapText}`;
+                entryDiv.appendChild(textSpan);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remove';
+                removeBtn.className = 'remove-btn';
+                removeBtn.onclick = () => removeEntry(index);
+                entryDiv.appendChild(removeBtn);
+                rotationEntriesDiv.appendChild(entryDiv);
+            });
+        }
+
+        function addEntry() {
+            const gametype = gametypeSelect.value;
+            const map = mapSelect.value;
+            if (gametype && map) {
+                currentRotation.push({ gametype, map });
+                renderRotationUI();
+                // Visual feedback
+                const originalText = addEntryBtn.textContent;
+                const originalBg = addEntryBtn.style.backgroundColor;
+                addEntryBtn.textContent = 'Added!';
+                addEntryBtn.style.backgroundColor = '#28a745'; // Success green
+                setTimeout(() => {
+                    addEntryBtn.textContent = originalText;
+                    addEntryBtn.style.backgroundColor = originalBg;
+                }, 1500);
+            }
+        }
+
+        function removeEntry(index) {
+            currentRotation.splice(index, 1);
+            renderRotationUI();
+            generateRotationString(); // Also update generated string when an entry is removed
+        }
+
+        function generateRotationString() {
+            if (currentRotation.length === 0) {
+                outputStringTextarea.value = 'set sv_maprotation ""';
+                return;
+            }
+
+            let result = 'set sv_maprotation "';
+            let currentActiveGametype = "";
+            let firstEntryInString = true;
+
+            currentRotation.forEach(entry => {
+                if (entry.gametype !== currentActiveGametype) {
+                    if (!firstEntryInString) {
+                        result += " ";
+                    }
+                    result += "gametype " + entry.gametype;
+                    currentActiveGametype = entry.gametype;
+                    firstEntryInString = false;
+                }
+                result += " map " + entry.map;
+            });
+            result += '"';
+            outputStringTextarea.value = result;
+        }
+        
+        function applyPreset(presetId) {
+            if (presets[presetId]) {
+                currentRotation = JSON.parse(JSON.stringify(presets[presetId].entries)); // Deep copy
+                renderRotationUI();
+                generateRotationString();
+            }
+        }
+
+        function shuffleEntries() {
+            if (currentRotation.length < 2) return; // No need to shuffle if 0 or 1 entry
+            for (let i = currentRotation.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [currentRotation[i], currentRotation[j]] = [currentRotation[j], currentRotation[i]];
+            }
+            renderRotationUI();
+            generateRotationString();
+        }
+
+        addEntryBtn.onclick = addEntry;
+        generateStringBtn.onclick = generateRotationString;
+        
+        clearAllBtn.onclick = () => {
+            if (currentRotation.length > 0 && confirm("Are you sure you want to clear all entries? This action cannot be undone.")) {
+                currentRotation = [];
+                renderRotationUI();
+                generateRotationString();
+            } else if (currentRotation.length === 0) {
+                // Silently do nothing or give minor feedback if already empty
+            }
+        };
+        shuffleBtn.onclick = shuffleEntries;
+
+        copyStringBtn.onclick = () => {
+            if (!outputStringTextarea.value) return; // Don't try to copy if empty
+
+            outputStringTextarea.select();
+            outputStringTextarea.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                navigator.clipboard.writeText(outputStringTextarea.value).then(() => {
+                    const originalText = copyStringBtn.textContent;
+                    copyStringBtn.textContent = 'Copied!';
+                    setTimeout(() => { copyStringBtn.textContent = originalText; }, 2000);
+                }).catch(err => {
+                     console.error('Async: Could not copy text: ', err);
+                     alert('Failed to copy. Please copy manually.');
+                });
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                // Fallback for older browsers if navigator.clipboard is not available (less common now)
+                try {
+                    document.execCommand('copy');
+                    const originalText = copyStringBtn.textContent;
+                    copyStringBtn.textContent = 'Copied!';
+                    setTimeout(() => { copyStringBtn.textContent = originalText; }, 2000);
+                } catch (execErr) {
+                    console.error('Fallback execCommand failed: ', execErr);
+                    alert('Failed to copy. Please copy manually.');
+                }
+            }
+        };
+
+        presetButtonContainer.addEventListener('click', (event) => {
+            if (event.target.tagName === 'BUTTON' && event.target.dataset.preset) {
+                applyPreset(event.target.dataset.preset);
+            }
+        });
+
+        // Initial setup
+        populateSelects();
+        renderRotationUI();
+        generateRotationString(); // Initialize the string output
+    </script>
+</body>
+</html>
